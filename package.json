@@ -1,0 +1,15 @@
+{
+  "name": "kalkulator-cantik",
+  "version": "1.0.0",
+  "description": "CALCULATOR - Desktop App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Nabilla Khair",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-packager": "^17.1.2"
+  }
+}

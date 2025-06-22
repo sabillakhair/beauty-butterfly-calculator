@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CALCULATOR</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+  * {
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  body {
+    margin: 0;
+    background: linear-gradient(135deg, #fce4ec, #e3f2fd);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: "🦋";
+    position: absolute;
+    top: 20%;
+    left: -3rem;
+    font-size: 3rem;
+    opacity: 0.15;
+    animation: butterfly-float 12s linear infinite;
+    user-select: none;
+    pointer-events: none;
+  }
+  @keyframes butterfly-float {
+    0% {transform: translateX(-100vw) translateY(0);}
+    50% {transform: translateX(50vw) translateY(-20px) rotate(10deg);}
+    100% {transform: translateX(110vw) translateY(0);}
+  }
+
+  .calculator {
+    background: white;
+    border-radius: 20px;
+    box-shadow:
+      0 4px 15px rgba(255,105,180,0.3),
+      0 8px 25px rgba(135,206,235,0.3);
+    width: 340px;
+    max-width: 95vw;
+    padding: 25px 20px 30px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 10; 
+  }
+
+  .display {
+    background: linear-gradient(135deg, #f8bbd0, #81d4fa);
+    border-radius: 15px;
+    height: 70px;
+    color: #222;
+    font-size: 2.5rem;
+    font-weight: 600;
+    padding: 10px 20px;
+    text-align: right;
+    letter-spacing: 1.2px;
+    user-select: none;
+    margin-bottom: 20px;
+    box-shadow: inset 0 3px 6px rgba(255,255,255,0.6);
+    white-space: nowrap;      /* satu baris, gak bisa wrap */
+    overflow: hidden;         /* sembunyikan yang keluar */
+    max-width: 100%;          /* supaya sesuai wadah */
+   }
+
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(5, 60px);
+    gap: 10px;
+  }
+
+  button {
+    font-size: 1.4rem;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease, box-shadow 0.15s ease;
+    user-select: none;
+    color: white;
+  }
+  button:active,
+  button.pressed {
+    box-shadow: inset 0 3px 6px rgba(0,0,0,0.15);
+    filter: brightness(0.85);
+  }
+
+  .number, .decimal {
+    background-color: #f48fb1; /* baby pink cerah */
+  }
+
+  .operator {
+    background-color: #4fc3f7; /* baby blue cerah */
+  }
+
+  .operator.add {
+    background-color: #0288d1; /* biru lebih gelap & vibrant */
+  }
+
+  .equal {
+    background-color: #ec407a; /* pink kuat */
+  }
+
+  .clear {
+    background-color: #aaa;
+  }
+</style>
+</head>
+<body>
+
+  <div class="calculator" role="application" aria-label="CALCULATOR">
+    <div class="display" id="display" aria-live="polite" aria-atomic="true">0</div>
+
+
+    <div class="buttons" role="group" aria-label="Tombol kalkulator">
+      <button class="number" data-key="7">7</button>
+      <button class="number" data-key="8">8</button>
+      <button class="number" data-key="9">9</button>
+      <button class="operator" data-key="/">÷</button>
+
+      <button class="number" data-key="4">4</button>
+      <button class="number" data-key="5">5</button>
+      <button class="number" data-key="6">6</button>
+      <button class="operator" data-key="*">×</button>
+
+      <button class="number" data-key="1">1</button>
+      <button class="number" data-key="2">2</button>
+      <button class="number" data-key="3">3</button>
+      <button class="operator" data-key="-">−</button>
+
+      <button class="decimal" data-key=".">.</button>
+      <button class="number" data-key="0">0</button>
+      <button class="clear" data-key="c">C</button>
+      <button class="operator add" data-key="+">+</button>
+
+      <button class="equal" data-key="=" style="grid-column: span 4;">=</button>
+    </div>
+  </div>
+
+<script>
+  const display = document.getElementById('display');
+let expression = '';   // Simpan seluruh ekspresi string (misal "5+7*2")
+let currentInput = '0';
+let waitingForNewInput = false;
+
+function formatNumberWithSeparator(value) {
+  const [intPart, decPart] = value.split('.');
+  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
+}
+
+function updateDisplay() {
+  if (!isNaN(currentInput) && currentInput !== '') {
+    display.textContent = formatNumberWithSeparator(currentInput);
+  } else {
+    display.textContent = currentInput;
+  }
+}
+
+function appendNumber(num) {
+  if (currentInput.replace(/\D/g, '').length >= 24) return; // batasi 24 digit angka saja, tanpa operator
+
+  if (waitingForNewInput) {
+    currentInput = num;
+    waitingForNewInput = false;
+  } else {
+    if (currentInput === '0' && num !== '.') {
+      currentInput = num;
+    } else {
+      currentInput += num;
+    }
+  }
+  updateDisplay();
+}
+
+function appendDecimal() {
+  if (currentInput.replace(/\D/g, '').length >= 24) return; // batasi juga decimal
+
+  if (waitingForNewInput) {
+    currentInput = '0.';
+    waitingForNewInput = false;
+    updateDisplay();
+    return;
+  }
+  if (!currentInput.includes('.')) {
+    currentInput += '.';
+    updateDisplay();
+  }
+}
+
+
+function performOperation(operator) {
+  if (!waitingForNewInput) {
+    expression += currentInput;
+  }
+  expression += operator;
+  waitingForNewInput = true;
+}
+
+function calculate() {
+  if (!waitingForNewInput) {
+    expression += currentInput;
+  }
+  try {
+    // eval di sini evaluasi seluruh ekspresi lengkap
+    const result = eval(expression);
+    currentInput = String(result);
+    expression = '';
+  } catch {
+    currentInput = 'Error';
+    expression = '';
+  }
+  waitingForNewInput = true;
+  updateDisplay();
+}
+
+function clearDisplay() {
+  expression = '';
+  currentInput = '0';
+  waitingForNewInput = false;
+  updateDisplay();
+}
+
+document.querySelectorAll('.buttons button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.key;
+
+    if (!isNaN(key)) {
+      appendNumber(key);
+    } else if (key === '.') {
+      appendDecimal();
+    } else if (key === '=') {
+      calculate();
+    } else if (['+', '-', '*', '/'].includes(key)) {
+      performOperation(key);
+    } else if (key === 'c') {
+      clearDisplay();
+    }
+  });
+});
+
+window.addEventListener('keydown', (e) => {
+  const keyMap = {
+    '0': '0', '1': '1', '2': '2', '3': '3',
+    '4': '4', '5': '5', '6': '6', '7': '7',
+    '8': '8', '9': '9', '.': '.',
+    '+': '+', '-': '-', '*': '*', '/': '/',
+    'Enter': '=', '=': '=',
+    'Escape': 'clear',
+    'Delete': 'clear'
+  };
+  if (!keyMap[e.key]) return;
+
+  if (keyMap[e.key] === 'clear') {
+    const clearBtn = document.querySelector('button.clear');
+    clearBtn.classList.add('pressed');
+    clearBtn.click();
+    setTimeout(() => clearBtn.classList.remove('pressed'), 150);
+    return;
+  }
+
+  const btn = document.querySelector(`button[data-key="${keyMap[e.key]}"]`);
+  if (btn) {
+    btn.classList.add('pressed');
+    btn.click();
+    setTimeout(() => btn.classList.remove('pressed'), 150);
+  }
+});
+</script>
+
+</body>
+</html>
